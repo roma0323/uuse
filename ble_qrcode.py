@@ -9,7 +9,7 @@ from generate_qrcode import main_workflow, ACCESS_TOKEN
 
 # --- 【必須設定】目標裝置和 REF 值 ---
 # 設藥局 BLE MAC ADDRESS = TARGET_ADDRESS
-TARGET_ADDRESS = "66:4d:e5:cd:e9:b0"
+TARGET_ADDRESS = "6a:5e:c5:9f:48:89"
 RSSI_THRESHOLD = -50
 # 設藥局 REF VALUE = "00000000_iristest"
 REF_VALUE = "00000000_iristest" 

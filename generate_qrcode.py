@@ -51,17 +51,17 @@ def get_qrcode_image(ref_value: str, access_token: str, transaction_id: str) -> 
 
         # API 成功回應 (200 OK)
         response_data = response.json()
-        print("✅ API 請求成功 (HTTP 200 OK)")
+        print("API 請求成功 (HTTP 200 OK)")
         return response_data
     
     except requests.exceptions.HTTPError as errh:
         # 處理 HTTP 錯誤
-        print(f"❌ HTTP 錯誤發生: {errh}")
+        print(f"HTTP 錯誤發生: {errh}")
         print(f"伺服器回應內容: {errh.response.text}")
         return None
     except requests.exceptions.RequestException as err:
         # 處理其他請求錯誤 (如連線失敗)
-        print(f"❌ 請求失敗: {err}")
+        print(f"請求失敗: {err}")
         return None
 
 def save_base64_to_png(base64_data: str, filename_prefix: str = "qrcode_output") -> str:
@@ -86,7 +86,7 @@ def save_base64_to_png(base64_data: str, filename_prefix: str = "qrcode_output")
     try:
         image_bytes = base64.b64decode(base64_content)
     except Exception as e:
-        print(f"❌ Base64 解碼失敗: {e}")
+        print(f"Base64 解碼失敗: {e}")
         return None
         
     # 組合檔案名稱並寫入
@@ -114,8 +114,8 @@ def main_workflow(ref_to_test: str):
     api_response = get_qrcode_image(ref_to_test, ACCESS_TOKEN, new_transaction_id)
 
     if api_response is None:
-        print("\n🚫 測試中止：API 呼叫失敗或發生錯誤。")
-        return
+        print("\n 測試中止：API 呼叫失敗或發生錯誤。")
+        return None
 
     # 3. save QR Code png
     qrcode_base64 = api_response.get("qrcodeImage")
@@ -132,12 +132,55 @@ def main_workflow(ref_to_test: str):
             print(f"transactionId (用於 POST /result): {new_transaction_id}")
             print(f"authUri (DeepLink): {auth_uri}")
         else:
-            print("\n🚫 圖片儲存失敗。")
+            print("\n 圖片儲存失敗。")
     else:
-        print("\n🚫 API 回應中未包含 qrcodeImage 欄位，請檢查 API 回應結構。")
+        print("\n API 回應中未包含 qrcodeImage 欄位，請檢查 API 回應結構。")
+
+    # 回傳 transactionId 供外部流程使用（即自動查詢）
+    return new_transaction_id
+
+
+
+#取得驗證內資料
+def get_verification_result(transaction_id: str, access_token: str):
+    """
+    查詢使用者掃描 QR Code 後的驗證結果。
+    """
+    url = "https://verifier-sandbox.wallet.gov.tw/api/oidvp/result"
+    headers = {
+        "Content-Type": "application/json",
+        "Access-Token": access_token
+    }
+    payload = {"transactionId": transaction_id}
+
+    print(f"\n--- 步驟 2: 查詢驗證結果 ---")
+    response = requests.post(url, headers=headers, json=payload)
+
+    if response.status_code == 200:
+        print("成功取得驗證結果")
+        result = response.json()
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return result
+    elif response.status_code == 400:
+        print("用戶尚未上傳資料，請稍後再查詢")
+    else:
+        print(f"查詢失敗，HTTP {response.status_code}")
+        print(response.text)
+    return None
+
 
 
 if __name__ == "__main__":
    
-    test_ref = "00000000_iristest" 
-    main_workflow(test_ref)
+    #test_ref = "00000000_iristest"
+    test_ref = "00000000_iris_enter_mrt" 
+
+    # 產生 QR Code 並取得 transactionId
+    transaction_id = main_workflow(test_ref)
+
+    # 等使用者掃描完成後再查（按 Enter 繼續）
+    if transaction_id:
+        input("search")
+        get_verification_result(transaction_id, ACCESS_TOKEN)
+    else:
+        print("沒有可用的 transactionId，停止查詢。")
