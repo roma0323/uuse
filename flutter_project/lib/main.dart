@@ -5,6 +5,7 @@ import 'tabs/scan_tab.dart';
 import 'tabs/profile_tab.dart';
 import 'tabs/show_credentials_tab.dart';
 import 'ble_proximity_screen.dart';
+import 'simplified_proximity_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -145,18 +146,39 @@ class _ShowCredentialsPageState extends State<ShowCredentialsPage> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const BleProximityScreen(),
-            ),
-          );
-        },
-        icon: const Icon(Icons.bluetooth),
-        label: const Text('BLE Test'),
-        backgroundColor: Colors.blue.shade600,
-        foregroundColor: Colors.white,
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton.extended(
+            heroTag: "simplified",
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const SimplifiedProximityScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.computer),
+            label: const Text('Mac Detector'),
+            backgroundColor: Colors.green.shade600,
+            foregroundColor: Colors.white,
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton.extended(
+            heroTag: "full",
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const BleProximityScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.bluetooth),
+            label: const Text('Full BLE'),
+            backgroundColor: Colors.blue.shade600,
+            foregroundColor: Colors.white,
+          ),
+        ],
       ),
     );
   }
