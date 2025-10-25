@@ -83,18 +83,187 @@ def _html_page(title: str, body_html: str) -> Response:
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{title}</title>
   <style>
-    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 'Noto Sans', sans-serif; margin: 24px; color: #111; }}
-    .card {{ border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 16px; background: #fff; }}
-    h1 {{ font-size: 20px; margin: 0 0 12px 0; }}
-    h2 {{ font-size: 16px; margin: 16px 0 8px 0; }}
-    pre {{ background: #f8fafc; padding: 12px; overflow: auto; border-radius: 8px; border: 1px solid #e5e7eb; }}
-    .muted {{ color: #6b7280; }}
-    .ok {{ color: #059669; font-weight: 600; }}
-    .warn {{ color: #d97706; font-weight: 600; }}
-    .err {{ color: #dc2626; font-weight: 600; }}
-    a.button {{ display: inline-block; padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb; text-decoration: none; color: #111; background: #f8fafc; }}
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+    body {{ 
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+      background: #f2f2f7; 
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }}
+    .pos-container {{ 
+      background: #ffffff; 
+      border-radius: 20px; 
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 8px rgba(0, 0, 0, 0.05);
+      max-width: 400px; 
+      width: 100%; 
+      overflow: hidden;
+    }}
+    .pos-header {{ 
+      background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+      color: white; 
+      padding: 24px; 
+      text-align: center; 
+    }}
+    .pos-header h1 {{ 
+      font-size: 22px; 
+      font-weight: 600; 
+      margin-bottom: 4px;
+      letter-spacing: -0.5px;
+    }}
+    .pos-header .subtitle {{ 
+      font-size: 14px; 
+      opacity: 0.85; 
+      font-weight: 400;
+    }}
+    .pos-content {{ 
+      padding: 24px; 
+    }}
+    .receipt-section {{ 
+      border-bottom: 1px dashed #d1d1d6; 
+      padding-bottom: 20px; 
+      margin-bottom: 20px; 
+    }}
+    .receipt-section:last-child {{ 
+      border-bottom: none; 
+      margin-bottom: 0; 
+    }}
+    .receipt-row {{ 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 12px; 
+    }}
+    .receipt-row:last-child {{ 
+      margin-bottom: 0; 
+    }}
+    .receipt-label {{ 
+      font-size: 15px; 
+      color: #48484a; 
+      font-weight: 400;
+    }}
+    .receipt-value {{ 
+      font-size: 15px; 
+      color: #1c1c1e; 
+      font-weight: 500;
+      text-align: right;
+      max-width: 60%;
+      word-break: break-all;
+    }}
+    .total-row {{ 
+      font-size: 18px; 
+      font-weight: 600; 
+      padding-top: 12px; 
+      border-top: 2px solid #007AFF;
+    }}
+    .total-row .receipt-label {{ 
+      color: #1c1c1e; 
+      font-weight: 600;
+    }}
+    .total-row .receipt-value {{ 
+      color: #007AFF; 
+      font-size: 20px;
+    }}
+    .status-badge {{ 
+      display: inline-block; 
+      padding: 6px 12px; 
+      border-radius: 12px; 
+      font-size: 13px; 
+      font-weight: 600; 
+      text-transform: uppercase; 
+      letter-spacing: 0.5px;
+    }}
+    .status-verified {{ 
+      background: #e6f7ed; 
+      color: #059669; 
+    }}
+    .status-pending {{ 
+      background: #fef3e6; 
+      color: #d97706; 
+    }}
+    .status-error {{ 
+      background: #fee6e6; 
+      color: #dc2626; 
+    }}
+    .discount-note {{ 
+      font-size: 13px; 
+      color: #ff3b30; 
+      font-weight: 500; 
+      margin-left: 8px;
+    }}
+    .transaction-id {{ 
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace; 
+      font-size: 12px; 
+      color: #8e8e93; 
+      text-align: center; 
+      padding: 16px; 
+      background: #f9f9f9; 
+      margin: -24px -24px 0 -24px; 
+      border-top: 1px solid #e5e5ea;
+    }}
+    .empty-state {{ 
+      text-align: center; 
+      padding: 40px 24px; 
+    }}
+    .empty-state h2 {{ 
+      font-size: 18px; 
+      color: #1c1c1e; 
+      margin-bottom: 8px; 
+      font-weight: 600;
+    }}
+    .empty-state p {{ 
+      font-size: 15px; 
+      color: #8e8e93; 
+      line-height: 1.4;
+    }}
+    .debug-section {{ 
+      margin-top: 20px; 
+      padding-top: 20px; 
+      border-top: 1px solid #e5e5ea; 
+    }}
+    .debug-toggle {{ 
+      background: #f2f2f7; 
+      border: none; 
+      padding: 10px 16px; 
+      border-radius: 10px; 
+      font-size: 13px; 
+      color: #007AFF; 
+      cursor: pointer; 
+      width: 100%;
+      font-weight: 500;
+    }}
+    .debug-content {{ 
+      display: none; 
+      margin-top: 12px; 
+      background: #f9f9f9; 
+      border-radius: 10px; 
+      padding: 16px; 
+    }}
+    .debug-content pre {{ 
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace; 
+      font-size: 11px; 
+      color: #48484a; 
+      line-height: 1.4; 
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }}
   </style>
-    <!-- Auto-refresh removed by request; manual navigation only -->
+  <script>
+    function toggleDebug() {{
+      const content = document.getElementById('debug-content');
+      const button = document.getElementById('debug-toggle');
+      if (content.style.display === 'none' || content.style.display === '') {{
+        content.style.display = 'block';
+        button.textContent = '隱藏詳細資訊';
+      }} else {{
+        content.style.display = 'none';
+        button.textContent = '顯示詳細資訊';
+      }}
+    }}
+  </script>
 </head>
 <body>
 {body_html}
@@ -111,41 +280,7 @@ def _html_page(title: str, body_html: str) -> Response:
     return resp
 
 
-def _render_result_summary(data: dict) -> str:
-    # Try to extract a few common fields if present; fallback to pretty JSON.
-    # Since exact schema may vary, we keep this defensive.
-    status = data.get("status") or data.get("code") or data.get("result")
-    ts = data.get("time") or data.get("timestamp")
 
-    # Look for potential claims/payload areas
-    subject = None
-    credential_subject = None
-    if isinstance(data.get("payload"), dict):
-        payload = data["payload"]
-        subject = payload.get("subject") or payload.get("sub")
-        credential_subject = payload.get("credentialSubject") or payload.get("claims")
-
-    lines = ["<div class='card'>", f"<h1>驗證結果</h1>"]
-    if status is not None:
-        lines.append(f"<div>狀態：<span class='ok'>{status}</span></div>")
-    if ts:
-        lines.append(f"<div class='muted'>時間：{ts}</div>")
-    if subject:
-        lines.append(f"<div>對象：{subject}</div>")
-    if credential_subject:
-        # Print a small subset if it's large
-        snippet = json.dumps(credential_subject, ensure_ascii=False)[:600]
-        lines.append("<h2>主體內容 (節錄)</h2>")
-        lines.append(f"<pre>{snippet}</pre>")
-    lines.append("</div>")
-
-    # Full JSON
-    pretty = json.dumps(data, ensure_ascii=False, indent=2)
-    lines.append("<div class='card'>")
-    lines.append("<h2>原始回應 JSON</h2>")
-    lines.append(f"<pre>{pretty}</pre>")
-    lines.append("</div>")
-    return "\n".join(lines)
 
 # http://192.168.0.236:5001/view/result 
 @app.route("/view/result", methods=["GET"])
@@ -160,22 +295,36 @@ def view_result():
     # 如果仍然沒有 transactionId，就顯示「尚未產生交易」
     if not tid:
         body = (
-            "<div class='card'><h1>尚未產生交易</h1>"
-            "<div class='muted'>請先在 App 端點擊出示以產生 QR，或以 API 產生一筆交易。</div>"
+            "<div class='pos-container'>"
+            "<div class='pos-header'>"
+            "<h1>POS 收銀系統</h1>"
+            "<div class='subtitle'>等待交易</div>"
+            "</div>"
+            "<div class='empty-state'>"
+            "<h2>尚未產生交易</h2>"
+            "<p>請先在 App 端點擊出示以產生 QR Code<br>或透過 API 產生交易</p>"
+            "</div>"
             "</div>"
         )
-        return _html_page("驗證結果", body)
+        return _html_page("POS 收銀系統", body)
     
       
     data = get_verification_result(tid, ACCESS_TOKEN)
     if data is None:
         body = (
-            f"<div class='card'><h1>尚未取得驗證結果</h1>"
-            f"<div>交易序號：<code>{tid}</code></div>"
-            "<div class='muted'>請稍後再試。</div>"
+            "<div class='pos-container'>"
+            "<div class='pos-header'>"
+            "<h1>POS 收銀系統</h1>"
+            "<div class='subtitle'>處理中</div>"
+            "</div>"
+            "<div class='empty-state'>"
+            "<h2>等待驗證結果</h2>"
+            "<p>正在驗證數位身份證件<br>請稍後...</p>"
+            "</div>"
+            f"<div class='transaction-id'>交易序號: {tid}</div>"
             "</div>"
         )
-        return _html_page("驗證結果 - 等待中", body)
+        return _html_page("POS 收銀系統 - 處理中", body)
 
     # 交易資訊：預設金額 100，身份為已驗證學生時 9 折
     amount_val = 100.0
@@ -185,36 +334,99 @@ def view_result():
     has_older = _has_verified_older(data)
     
     # Determine discount and identity
+    discount_amount = 0
     if has_student:
         total = amount_val * 0.9
-        identity_label = "學生（已驗證）"
-        discount_note = "（學生9折）"
+        identity_label = "學生"
+        status_class = "status-verified"
+        discount_amount = amount_val * 0.1
+        discount_note = "-10%"
     elif has_older:
-        total = amount_val * 0.8  # Assuming 20% discount for older adults
-        identity_label = "長者（已驗證）"
-        discount_note = "（長者8折）"
+        total = amount_val * 0.8
+        identity_label = "長者"
+        status_class = "status-verified"
+        discount_amount = amount_val * 0.2
+        discount_note = "-20%"
     else:
         total = amount_val
         identity_label = "一般"
+        status_class = "status-verified"
         discount_note = ""
     
-    total_display = f"{total:.2f}"
+    verification_status = "已驗證" if data.get("verifyResult") else "待驗證"
+    status_class = "status-verified" if data.get("verifyResult") else "status-pending"
+    
+    # Generate POS-style receipt
+    body = f"""
+<div class='pos-container'>
+<div class='pos-header'>
+<h1>POS 收銀系統</h1>
+<div class='subtitle'>交易完成</div>
+</div>
+<div class='pos-content'>
 
-    # 預設標籤仍為「載具條碼」，若解析到 cname 則使用該值（例如「卡號」）
-    label_display = carrier_label or "載具條碼"
+<div class='receipt-section'>
+<div class='receipt-row'>
+<span class='receipt-label'>身份驗證</span>
+<span class='status-badge {status_class}'>{verification_status}</span>
+</div>
+<div class='receipt-row'>
+<span class='receipt-label'>身份類別</span>
+<span class='receipt-value'>{identity_label}</span>
+</div>"""
+    
+    # Add carrier information if available
+    if invoice_code:
+        label_display = carrier_label or "載具條碼"
+        body += f"""
+<div class='receipt-row'>
+<span class='receipt-label'>{label_display}</span>
+<span class='receipt-value'>{invoice_code}</span>
+</div>"""
+    
+    body += """
+</div>
 
-    summary_html = (
-        f"<div class='card'>"
-        f"<h2>交易資訊</h2>"
-        f"<div>{label_display}：<code>{invoice_code or '未提供'}</code></div>"
-        f"<div>原價：<strong>{amount_val:.2f}</strong></div>"
-        f"<div>身份：{identity_label}</div>"
-        f"<div>總價：<strong>{total_display}</strong> {discount_note}</div>"
-        f"</div>"
-    )
+<div class='receipt-section'>
+<div class='receipt-row'>
+<span class='receipt-label'>商品金額</span>
+<span class='receipt-value'>NT$ {:.0f}</span>
+</div>""".format(amount_val)
+    
+    # Add discount row if applicable
+    if discount_amount > 0:
+        body += f"""
+<div class='receipt-row'>
+<span class='receipt-label'>優惠折扣 {discount_note}</span>
+<span class='receipt-value discount-note'>-NT$ {discount_amount:.0f}</span>
+</div>"""
+    
+    # Total amount
+    body += f"""
+<div class='receipt-row total-row'>
+<span class='receipt-label'>應付金額</span>
+<span class='receipt-value'>NT$ {total:.0f}</span>
+</div>
+</div>"""
+    
+    # Debug section for developers
+    if data:
+        pretty_json = json.dumps(data, ensure_ascii=False, indent=2)
+        body += f"""
+<div class='debug-section'>
+<button id='debug-toggle' class='debug-toggle' onclick='toggleDebug()'>顯示詳細資訊</button>
+<div id='debug-content' class='debug-content'>
+<pre>{pretty_json}</pre>
+</div>
+</div>"""
+    
+    body += f"""
+</div>
+<div class='transaction-id'>交易序號: {tid}</div>
+</div>
+"""
 
-    body = summary_html + _render_result_summary(data)
-    return _html_page("驗證結果", body)
+    return _html_page("POS 收銀系統", body)
 
 
 

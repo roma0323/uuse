@@ -30,7 +30,7 @@ class _BleProximityScreenState extends State<BleProximityScreen> {
       if (Platform.isIOS) {
         bluetoothStatus = await Permission.bluetooth.status;
         locationStatus = await Permission.locationWhenInUse.status;
-        
+
         // On iOS, sometimes we need to check if we can actually use Bluetooth
         // even if permission shows as granted
         print("iOS Bluetooth status: $bluetoothStatus");
@@ -55,19 +55,20 @@ class _BleProximityScreenState extends State<BleProximityScreen> {
   Future<void> _requestPermissions() async {
     try {
       Map<Permission, PermissionStatus> statuses;
-      
+
       if (Platform.isIOS) {
         // For iOS, request permissions individually with better handling
         final bluetoothStatus = await Permission.bluetooth.request();
         final locationStatus = await Permission.locationWhenInUse.request();
-        
+
         statuses = {
           Permission.bluetooth: bluetoothStatus,
           Permission.locationWhenInUse: locationStatus,
         };
-        
+
         // Show alert if permissions are permanently denied
-        if (bluetoothStatus.isPermanentlyDenied || locationStatus.isPermanentlyDenied) {
+        if (bluetoothStatus.isPermanentlyDenied ||
+            locationStatus.isPermanentlyDenied) {
           _showPermissionDeniedDialog();
         }
       } else {
@@ -80,11 +81,15 @@ class _BleProximityScreenState extends State<BleProximityScreen> {
 
       setState(() {
         if (Platform.isIOS) {
-          _bluetoothPermissionGranted = statuses[Permission.bluetooth]?.isGranted ?? false;
-          _locationPermissionGranted = statuses[Permission.locationWhenInUse]?.isGranted ?? false;
+          _bluetoothPermissionGranted =
+              statuses[Permission.bluetooth]?.isGranted ?? false;
+          _locationPermissionGranted =
+              statuses[Permission.locationWhenInUse]?.isGranted ?? false;
         } else {
-          _bluetoothPermissionGranted = statuses[Permission.bluetoothScan]?.isGranted ?? false;
-          _locationPermissionGranted = statuses[Permission.location]?.isGranted ?? false;
+          _bluetoothPermissionGranted =
+              statuses[Permission.bluetoothScan]?.isGranted ?? false;
+          _locationPermissionGranted =
+              statuses[Permission.location]?.isGranted ?? false;
         }
         _updateStatusMessage();
       });
@@ -97,7 +102,7 @@ class _BleProximityScreenState extends State<BleProximityScreen> {
 
   void _showPermissionDeniedDialog() {
     if (!mounted) return;
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -130,7 +135,8 @@ class _BleProximityScreenState extends State<BleProximityScreen> {
     if (Platform.isIOS) {
       // On iOS, we primarily need Bluetooth permission
       if (_bluetoothPermissionGranted) {
-        _statusMessage = "✅ Bluetooth permission granted! Ready for BLE scanning.";
+        _statusMessage =
+            "✅ Bluetooth permission granted! Ready for BLE scanning.";
       } else {
         _statusMessage = "❌ Missing Bluetooth permission";
       }
@@ -164,36 +170,39 @@ class _BleProximityScreenState extends State<BleProximityScreen> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            
+
             // Permission Status Cards
             _buildPermissionCard(
               'Bluetooth Permission',
               _bluetoothPermissionGranted,
-              Platform.isIOS ? 'Required for BLE scanning' : 'Required for BLE scanning and connecting',
+              Platform.isIOS
+                  ? 'Required for BLE scanning'
+                  : 'Required for BLE scanning and connecting',
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             _buildPermissionCard(
-              'Location Permission', 
+              'Location Permission',
               _locationPermissionGranted,
               'Required for BLE device discovery (Android requirement)',
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Status Message
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: _bluetoothPermissionGranted && _locationPermissionGranted 
-                    ? Colors.green.shade50 
+                color: _bluetoothPermissionGranted && _locationPermissionGranted
+                    ? Colors.green.shade50
                     : Colors.orange.shade50,
                 border: Border.all(
-                  color: _bluetoothPermissionGranted && _locationPermissionGranted 
-                      ? Colors.green 
-                      : Colors.orange,
+                  color:
+                      _bluetoothPermissionGranted && _locationPermissionGranted
+                          ? Colors.green
+                          : Colors.orange,
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -201,18 +210,21 @@ class _BleProximityScreenState extends State<BleProximityScreen> {
                 _statusMessage,
                 style: TextStyle(
                   fontSize: 16,
-                  color: _bluetoothPermissionGranted && _locationPermissionGranted 
-                      ? Colors.green.shade800 
-                      : Colors.orange.shade800,
+                  color:
+                      _bluetoothPermissionGranted && _locationPermissionGranted
+                          ? Colors.green.shade800
+                          : Colors.orange.shade800,
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Action Buttons
-            if (!((Platform.isIOS && _bluetoothPermissionGranted) || 
-                  (!Platform.isIOS && _bluetoothPermissionGranted && _locationPermissionGranted)))
+            if (!((Platform.isIOS && _bluetoothPermissionGranted) ||
+                (!Platform.isIOS &&
+                    _bluetoothPermissionGranted &&
+                    _locationPermissionGranted)))
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -222,12 +234,15 @@ class _BleProximityScreenState extends State<BleProximityScreen> {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text('Request Permissions', style: TextStyle(fontSize: 16)),
+                  child: const Text('Request Permissions',
+                      style: TextStyle(fontSize: 16)),
                 ),
               ),
-            
-            if ((Platform.isIOS && _bluetoothPermissionGranted) || 
-                (!Platform.isIOS && _bluetoothPermissionGranted && _locationPermissionGranted))
+
+            if ((Platform.isIOS && _bluetoothPermissionGranted) ||
+                (!Platform.isIOS &&
+                    _bluetoothPermissionGranted &&
+                    _locationPermissionGranted))
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -243,12 +258,13 @@ class _BleProximityScreenState extends State<BleProximityScreen> {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text('Continue to Phase 2', style: TextStyle(fontSize: 16)),
+                  child: const Text('Continue to Phase 2',
+                      style: TextStyle(fontSize: 16)),
                 ),
               ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Refresh Button
             SizedBox(
               width: double.infinity,
@@ -257,9 +273,9 @@ class _BleProximityScreenState extends State<BleProximityScreen> {
                 child: const Text('Refresh Permission Status'),
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // iOS Bypass for testing
             if (Platform.isIOS)
               SizedBox(
@@ -304,7 +320,8 @@ class _BleProximityScreenState extends State<BleProximityScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Text(
                     description,

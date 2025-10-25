@@ -170,7 +170,7 @@ class _ShowCredentialsPageState extends State<ShowCredentialsPage> {
         foregroundColor: Colors.white,
       );
     }
-    
+
     // Show "blue tester" button only in "個人" (index 4)
     if (_currentIndex == 4) {
       return FloatingActionButton.extended(
@@ -188,7 +188,7 @@ class _ShowCredentialsPageState extends State<ShowCredentialsPage> {
         foregroundColor: Colors.white,
       );
     }
-    
+
     // No floating action button for other tabs
     return null;
   }

@@ -17,13 +17,13 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
   bool _isScanning = false;
   String _statusMessage = "Ready to scan for devices";
   StreamSubscription<List<ScanResult>>? _scanSubscription;
-  
+
   // Filter settings
   String _nameFilter = "";
   int _rssiThreshold = -80;
   bool _hideUnknownDevices = false;
   bool _macDevicesOnly = false;
-  
+
   // Predefined Mac device patterns
   final List<String> _macDevicePatterns = [
     'mac',
@@ -52,11 +52,13 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
 
   Future<void> _checkBluetoothState() async {
     try {
-      BluetoothAdapterState adapterState = await FlutterBluePlus.adapterState.first;
-      
+      BluetoothAdapterState adapterState =
+          await FlutterBluePlus.adapterState.first;
+
       if (adapterState == BluetoothAdapterState.on) {
         setState(() {
-          _statusMessage = "✅ Bluetooth ready. Configure filters and start scanning.";
+          _statusMessage =
+              "✅ Bluetooth ready. Configure filters and start scanning.";
         });
       } else {
         setState(() {
@@ -98,7 +100,6 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
           _stopScanning();
         }
       });
-
     } catch (e) {
       setState(() {
         _isScanning = false;
@@ -114,11 +115,11 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
       await FlutterBluePlus.stopScan();
       await _scanSubscription?.cancel();
       _scanSubscription = null;
-      
+
       setState(() {
         _isScanning = false;
-        _statusMessage = _filteredDevices.isEmpty 
-            ? "Scan completed. No devices match your filters." 
+        _statusMessage = _filteredDevices.isEmpty
+            ? "Scan completed. No devices match your filters."
             : "Scan completed. Found ${_filteredDevices.length} matching device(s).";
       });
     } catch (e) {
@@ -133,33 +134,33 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
     _filteredDevices = _allDevices.where((result) {
       // RSSI filter
       if (result.rssi < _rssiThreshold) return false;
-      
+
       // Get device name
       String deviceName = _getDeviceName(result).toLowerCase();
-      
+
       // Hide unknown devices filter
       if (_hideUnknownDevices && deviceName == "unknown device") return false;
-      
+
       // Name filter
-      if (_nameFilter.isNotEmpty && 
+      if (_nameFilter.isNotEmpty &&
           !deviceName.contains(_nameFilter.toLowerCase())) {
         return false;
       }
-      
+
       // Mac devices only filter
       if (_macDevicesOnly) {
-        bool isMacDevice = _macDevicePatterns.any((pattern) => 
-            deviceName.contains(pattern.toLowerCase()));
+        bool isMacDevice = _macDevicePatterns
+            .any((pattern) => deviceName.contains(pattern.toLowerCase()));
         if (!isMacDevice) return false;
       }
-      
+
       return true;
     }).toList();
-    
+
     // Sort by RSSI (strongest first)
     _filteredDevices.sort((a, b) => b.rssi.compareTo(a.rssi));
-    
-    _statusMessage = _isScanning 
+
+    _statusMessage = _isScanning
         ? "Scanning... Found ${_filteredDevices.length} matching devices"
         : "Found ${_filteredDevices.length} matching device(s) out of ${_allDevices.length} total";
   }
@@ -176,8 +177,8 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
 
   bool _isPotentialMac(ScanResult result) {
     String deviceName = _getDeviceName(result).toLowerCase();
-    return _macDevicePatterns.any((pattern) => 
-        deviceName.contains(pattern.toLowerCase()));
+    return _macDevicePatterns
+        .any((pattern) => deviceName.contains(pattern.toLowerCase()));
   }
 
   void _setTargetDevice(ScanResult device) {
@@ -194,7 +195,8 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                 Navigator.of(context).pop();
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (context) => RssiMonitoringScreen(targetDevice: device),
+                    builder: (context) =>
+                        RssiMonitoringScreen(targetDevice: device),
                   ),
                 );
               },
@@ -205,7 +207,8 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                 Navigator.of(context).pop();
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (context) => ProximityDetectionScreen(targetDevice: device),
+                    builder: (context) =>
+                        ProximityDetectionScreen(targetDevice: device),
                   ),
                 );
               },
@@ -235,7 +238,7 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            
+
             // Filter Controls
             Card(
               elevation: 4,
@@ -246,10 +249,11 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                   children: [
                     const Text(
                       'Filter Settings',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Name Filter
                     TextField(
                       decoration: const InputDecoration(
@@ -265,9 +269,9 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                         });
                       },
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // RSSI Threshold
                     Text('Minimum Signal Strength: $_rssiThreshold dBm'),
                     Slider(
@@ -283,9 +287,9 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                         });
                       },
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // Filter Checkboxes
                     Row(
                       children: [
@@ -321,31 +325,31 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Status Message
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: _isScanning 
-                    ? Colors.blue.shade50 
-                    : _filteredDevices.isNotEmpty 
-                        ? Colors.green.shade50 
+                color: _isScanning
+                    ? Colors.blue.shade50
+                    : _filteredDevices.isNotEmpty
+                        ? Colors.green.shade50
                         : Colors.grey.shade50,
                 border: Border.all(
-                  color: _isScanning 
-                      ? Colors.blue 
-                      : _filteredDevices.isNotEmpty 
-                          ? Colors.green 
+                  color: _isScanning
+                      ? Colors.blue
+                      : _filteredDevices.isNotEmpty
+                          ? Colors.green
                           : Colors.grey,
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  if (_isScanning) 
+                  if (_isScanning)
                     const SizedBox(
                       width: 20,
                       height: 20,
@@ -353,19 +357,24 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                     )
                   else
                     Icon(
-                      _filteredDevices.isNotEmpty ? Icons.filter_alt : Icons.filter_alt_off,
-                      color: _filteredDevices.isNotEmpty ? Colors.green : Colors.grey,
+                      _filteredDevices.isNotEmpty
+                          ? Icons.filter_alt
+                          : Icons.filter_alt_off,
+                      color: _filteredDevices.isNotEmpty
+                          ? Colors.green
+                          : Colors.grey,
                     ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(_statusMessage, style: const TextStyle(fontSize: 14)),
+                    child: Text(_statusMessage,
+                        style: const TextStyle(fontSize: 14)),
                   ),
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Control Buttons
             Row(
               children: [
@@ -377,7 +386,8 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: Text(_isScanning ? 'Scanning...' : 'Start Filtered Scan'),
+                    child: Text(
+                        _isScanning ? 'Scanning...' : 'Start Filtered Scan'),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -394,16 +404,16 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Results Header
             Text(
               'Filtered Devices (${_filteredDevices.length})',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            
+
             // Device List
             SizedBox(
               height: 300, // Fixed height to prevent overflow
@@ -421,7 +431,8 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                           Text(
                             'No devices match your filters.\nTry adjusting the filter settings above.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                            style: TextStyle(
+                                fontSize: 16, color: Colors.grey.shade600),
                           ),
                         ],
                       ),
@@ -433,7 +444,7 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                         final deviceName = _getDeviceName(result);
                         final deviceId = result.device.remoteId.toString();
                         final isPotentialMac = _isPotentialMac(result);
-                        
+
                         return Card(
                           elevation: 2,
                           margin: const EdgeInsets.only(bottom: 8),
@@ -442,8 +453,12 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                             leading: Stack(
                               children: [
                                 Icon(
-                                  isPotentialMac ? Icons.computer : Icons.bluetooth,
-                                  color: isPotentialMac ? Colors.green : Colors.blue,
+                                  isPotentialMac
+                                      ? Icons.computer
+                                      : Icons.bluetooth,
+                                  color: isPotentialMac
+                                      ? Colors.green
+                                      : Colors.blue,
                                   size: 28,
                                 ),
                                 if (isPotentialMac)
@@ -470,7 +485,9 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                               deviceName,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: isPotentialMac ? Colors.green.shade700 : Colors.black,
+                                color: isPotentialMac
+                                    ? Colors.green.shade700
+                                    : Colors.black,
                               ),
                             ),
                             subtitle: Column(
@@ -483,10 +500,10 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                                     Text(
                                       'RSSI: ${result.rssi} dBm',
                                       style: TextStyle(
-                                        color: result.rssi > -60 
-                                            ? Colors.green 
-                                            : result.rssi > -80 
-                                                ? Colors.orange 
+                                        color: result.rssi > -60
+                                            ? Colors.green
+                                            : result.rssi > -80
+                                                ? Colors.orange
                                                 : Colors.red,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -494,10 +511,12 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                                     if (isPotentialMac) ...[
                                       const SizedBox(width: 8),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
                                           color: Colors.green.shade100,
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                         ),
                                         child: Text(
                                           'Mac Device',
@@ -526,28 +545,29 @@ class _DeviceFilteringScreenState extends State<DeviceFilteringScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: result.rssi > -60 
-                                        ? Colors.green.shade100 
-                                        : result.rssi > -80 
-                                            ? Colors.orange.shade100 
+                                    color: result.rssi > -60
+                                        ? Colors.green.shade100
+                                        : result.rssi > -80
+                                            ? Colors.orange.shade100
                                             : Colors.red.shade100,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    result.rssi > -60 
-                                        ? 'Close' 
-                                        : result.rssi > -80 
-                                            ? 'Medium' 
+                                    result.rssi > -60
+                                        ? 'Close'
+                                        : result.rssi > -80
+                                            ? 'Medium'
                                             : 'Far',
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: result.rssi > -60 
-                                          ? Colors.green.shade800 
-                                          : result.rssi > -80 
-                                              ? Colors.orange.shade800 
+                                      color: result.rssi > -60
+                                          ? Colors.green.shade800
+                                          : result.rssi > -80
+                                              ? Colors.orange.shade800
                                               : Colors.red.shade800,
                                     ),
                                   ),

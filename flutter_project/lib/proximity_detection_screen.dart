@@ -5,14 +5,15 @@ import 'dart:math';
 
 class ProximityDetectionScreen extends StatefulWidget {
   final ScanResult targetDevice;
-  
+
   const ProximityDetectionScreen({
     super.key,
     required this.targetDevice,
   });
 
   @override
-  State<ProximityDetectionScreen> createState() => _ProximityDetectionScreenState();
+  State<ProximityDetectionScreen> createState() =>
+      _ProximityDetectionScreenState();
 }
 
 class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
@@ -21,29 +22,29 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
   double _estimatedDistance = 0.0;
   bool _isMonitoring = false;
   bool _isInProximity = false;
-  
+
   // Proximity settings
-  int _proximityThreshold = -60;  // Default: close proximity
+  int _proximityThreshold = -60; // Default: close proximity
   bool _enableNotifications = true;
   bool _continuousMode = true;
-  
+
   // History and monitoring
   final List<int> _rssiHistory = [];
   StreamSubscription<List<ScanResult>>? _scanSubscription;
   Timer? _alertCooldownTimer;
   bool _alertOnCooldown = false;
-  
+
   // Alert tracking
   DateTime? _lastAlertTime;
   int _alertCount = 0;
   String _statusMessage = "Ready to start proximity detection";
-  
+
   @override
   void initState() {
     super.initState();
     _currentRssi = widget.targetDevice.rssi;
     _calculateDistance();
-    
+
     // Delay the proximity check until after the widget is fully built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkProximity();
@@ -69,7 +70,7 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
   void _calculateDistance() {
     const double txPower = -59;
     const double pathLossExponent = 2.0;
-    
+
     if (_currentRssi != 0) {
       double ratio = (txPower - _currentRssi) / (10.0 * pathLossExponent);
       _estimatedDistance = pow(10, ratio).toDouble();
@@ -78,27 +79,30 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
 
   void _checkProximity() {
     if (!mounted) return;
-    
+
     bool wasInProximity = _isInProximity;
     _isInProximity = _currentRssi >= _proximityThreshold;
-    
+
     // Trigger alert if just entered proximity
-    if (_isInProximity && !wasInProximity && _enableNotifications && !_alertOnCooldown) {
+    if (_isInProximity &&
+        !wasInProximity &&
+        _enableNotifications &&
+        !_alertOnCooldown) {
       _showProximityAlert();
     }
-    
+
     _updateStatusMessage();
   }
 
   void _showProximityAlert() {
     if (!mounted) return;
-    
+
     _alertCount++;
     _lastAlertTime = DateTime.now();
-    
+
     // Show overlay notification
     _showProximityOverlay();
-    
+
     // Show snackbar as backup
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -111,7 +115,7 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
         behavior: SnackBarBehavior.floating,
       ),
     );
-    
+
     // Set cooldown to prevent spam
     _alertOnCooldown = true;
     _alertCooldownTimer = Timer(const Duration(seconds: 5), () {
@@ -123,13 +127,14 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
 
   void _showProximityOverlay() {
     if (!mounted) return;
-    
+
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: [
               Icon(Icons.wifi_tethering, color: Colors.green, size: 28),
@@ -143,7 +148,8 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
             children: [
               Text(
                 'Close to ${_getDeviceName()}',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
@@ -194,7 +200,8 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
       _statusMessage = "🟢 IN PROXIMITY - Close to ${_getDeviceName()}!";
     } else {
       int distanceFromThreshold = (_proximityThreshold - _currentRssi).abs();
-      _statusMessage = "🔵 Monitoring... Need $distanceFromThreshold dBm stronger signal";
+      _statusMessage =
+          "🔵 Monitoring... Need $distanceFromThreshold dBm stronger signal";
     }
   }
 
@@ -214,18 +221,18 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
 
       _scanSubscription = FlutterBluePlus.scanResults.listen((results) {
         if (!mounted) return;
-        
+
         for (ScanResult result in results) {
           if (result.device.remoteId == widget.targetDevice.device.remoteId) {
             if (mounted) {
               setState(() {
                 _currentRssi = result.rssi;
                 _rssiHistory.add(_currentRssi);
-                
+
                 if (_rssiHistory.length > 50) {
                   _rssiHistory.removeAt(0);
                 }
-                
+
                 _calculateDistance();
               });
               _checkProximity();
@@ -234,7 +241,6 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
           }
         }
       });
-
     } catch (e) {
       setState(() {
         _isMonitoring = false;
@@ -289,7 +295,7 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            
+
             // Target Device Info
             Card(
               elevation: 4,
@@ -297,7 +303,8 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    Icon(Icons.computer, size: 32, color: Colors.green.shade600),
+                    Icon(Icons.computer,
+                        size: 32, color: Colors.green.shade600),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -305,11 +312,13 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                         children: [
                           Text(
                             'Target: ${_getDeviceName()}',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           Text(
                             'ID: ${widget.targetDevice.device.remoteId}',
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                            style: TextStyle(
+                                color: Colors.grey.shade600, fontSize: 12),
                           ),
                         ],
                       ),
@@ -318,9 +327,9 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Proximity Status
             Card(
               elevation: 4,
@@ -333,7 +342,9 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          _isInProximity ? Icons.wifi_tethering : Icons.wifi_off,
+                          _isInProximity
+                              ? Icons.wifi_tethering
+                              : Icons.wifi_off,
                           size: 32,
                           color: _getProximityColor(),
                         ),
@@ -349,7 +360,7 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Current readings
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -361,7 +372,9 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                               style: TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
-                                color: _currentRssi >= _proximityThreshold ? Colors.green : Colors.red,
+                                color: _currentRssi >= _proximityThreshold
+                                    ? Colors.green
+                                    : Colors.red,
                               ),
                             ),
                             const Text('RSSI (dBm)'),
@@ -386,9 +399,9 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Settings Card
             Card(
               elevation: 4,
@@ -399,10 +412,10 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                   children: [
                     const Text(
                       'Detection Settings',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
-                    
                     Text('Proximity Threshold: $_proximityThreshold dBm'),
                     Slider(
                       value: _proximityThreshold.toDouble(),
@@ -410,13 +423,14 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                       max: -40,
                       divisions: 50,
                       label: '$_proximityThreshold dBm',
-                      onChanged: _isMonitoring ? null : (value) {
-                        setState(() {
-                          _proximityThreshold = value.round();
-                        });
-                      },
+                      onChanged: _isMonitoring
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _proximityThreshold = value.round();
+                              });
+                            },
                     ),
-                    
                     SwitchListTile(
                       title: const Text('Enable Proximity Alerts'),
                       dense: true,
@@ -427,24 +441,25 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                         });
                       },
                     ),
-                    
                     SwitchListTile(
                       title: const Text('Continuous Monitoring'),
                       dense: true,
                       value: _continuousMode,
-                      onChanged: _isMonitoring ? null : (value) {
-                        setState(() {
-                          _continuousMode = value;
-                        });
-                      },
+                      onChanged: _isMonitoring
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _continuousMode = value;
+                              });
+                            },
                     ),
                   ],
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Status Message
             Container(
               width: double.infinity,
@@ -464,9 +479,9 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                 textAlign: TextAlign.center,
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Control Buttons
             Row(
               children: [
@@ -493,14 +508,15 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    child: const Text('Stop Detection', style: TextStyle(fontSize: 16)),
+                    child: const Text('Stop Detection',
+                        style: TextStyle(fontSize: 16)),
                   ),
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Statistics
             if (_alertCount > 0)
               Card(
@@ -514,7 +530,8 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                         children: [
                           Text(
                             '$_alertCount',
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.bold),
                           ),
                           const Text('Detections'),
                         ],
@@ -523,7 +540,8 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                         children: [
                           Text(
                             '${_rssiHistory.length}',
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.bold),
                           ),
                           const Text('Readings'),
                         ],
@@ -533,7 +551,8 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                           children: [
                             Text(
                               _lastAlertTime!.toString().substring(11, 19),
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                             const Text('Last Alert'),
                           ],
@@ -542,9 +561,9 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                   ),
                 ),
               ),
-              
+
             const SizedBox(height: 20),
-            
+
             // Success Message
             if (_alertCount > 0)
               Container(
@@ -557,11 +576,13 @@ class _ProximityDetectionScreenState extends State<ProximityDetectionScreen> {
                 ),
                 child: Column(
                   children: [
-                    const Icon(Icons.check_circle, color: Colors.green, size: 32),
+                    const Icon(Icons.check_circle,
+                        color: Colors.green, size: 32),
                     const SizedBox(height: 8),
                     const Text(
                       '🎉 Phase 5 Complete!',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Text(

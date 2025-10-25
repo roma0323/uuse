@@ -6,7 +6,7 @@ import 'proximity_detection_screen.dart';
 
 class RssiMonitoringScreen extends StatefulWidget {
   final ScanResult targetDevice;
-  
+
   const RssiMonitoringScreen({
     super.key,
     required this.targetDevice,
@@ -24,12 +24,12 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
   String _proximityStatus = "Unknown";
   Timer? _monitoringTimer;
   StreamSubscription<List<ScanResult>>? _scanSubscription;
-  
+
   // RSSI thresholds for proximity detection
   static const int _veryCloseThreshold = -40;
   static const int _closeThreshold = -60;
   static const int _mediumThreshold = -80;
-  
+
   @override
   void initState() {
     super.initState();
@@ -73,7 +73,7 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
     // Assuming Tx Power = -59 dBm and path loss exponent n = 2
     const double txPower = -59;
     const double pathLossExponent = 2.0;
-    
+
     if (_currentRssi != 0) {
       double ratio = (txPower - _currentRssi) / (10.0 * pathLossExponent);
       _estimatedDistance = pow(10, ratio).toDouble();
@@ -101,12 +101,12 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
             setState(() {
               _currentRssi = result.rssi;
               _rssiHistory.add(_currentRssi);
-              
+
               // Keep only last 20 readings for history
               if (_rssiHistory.length > 20) {
                 _rssiHistory.removeAt(0);
               }
-              
+
               _updateProximityStatus();
               _calculateDistance();
             });
@@ -114,7 +114,6 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
           }
         }
       });
-
     } catch (e) {
       setState(() {
         _isMonitoring = false;
@@ -187,7 +186,7 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            
+
             // Device Info Card
             Card(
               elevation: 4,
@@ -198,13 +197,14 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.bluetooth, size: 24, color: Colors.blue),
+                        const Icon(Icons.bluetooth,
+                            size: 24, color: Colors.blue),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             _getDeviceName(),
                             style: const TextStyle(
-                              fontSize: 18, 
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -220,9 +220,9 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // RSSI Display
             Card(
               elevation: 4,
@@ -265,9 +265,9 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Distance & Proximity
             Row(
               children: [
@@ -316,9 +316,9 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Control Buttons
             Row(
               children: [
@@ -330,7 +330,8 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: Text(_isMonitoring ? 'Monitoring...' : 'Start Monitoring'),
+                    child: Text(
+                        _isMonitoring ? 'Monitoring...' : 'Start Monitoring'),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -347,16 +348,16 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // RSSI History Chart
             const Text(
               'RSSI History',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            
+
             Expanded(
               child: Card(
                 elevation: 4,
@@ -376,9 +377,9 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Next Phase Button
             if (_rssiHistory.length > 5)
               SizedBox(
@@ -387,7 +388,8 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
                   onPressed: () {
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
-                        builder: (context) => ProximityDetectionScreen(targetDevice: widget.targetDevice),
+                        builder: (context) => ProximityDetectionScreen(
+                            targetDevice: widget.targetDevice),
                       ),
                     );
                   },
@@ -396,7 +398,8 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text('Continue to Phase 5: Proximity Detection!', style: TextStyle(fontSize: 16)),
+                  child: const Text('Continue to Phase 5: Proximity Detection!',
+                      style: TextStyle(fontSize: 16)),
                 ),
               ),
           ],
@@ -408,52 +411,52 @@ class _RssiMonitoringScreenState extends State<RssiMonitoringScreen> {
 
 class RssiChartPainter extends CustomPainter {
   final List<int> rssiValues;
-  
+
   RssiChartPainter(this.rssiValues);
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     if (rssiValues.length < 2) return;
-    
+
     final paint = Paint()
       ..color = Colors.blue
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
-    
+
     final path = Path();
-    
+
     // Find min and max for scaling
     final minRssi = rssiValues.reduce((a, b) => a < b ? a : b).toDouble();
     final maxRssi = rssiValues.reduce((a, b) => a > b ? a : b).toDouble();
     final range = maxRssi - minRssi;
-    
+
     if (range == 0) return;
-    
+
     // Draw the line chart
     for (int i = 0; i < rssiValues.length; i++) {
       final x = (i / (rssiValues.length - 1)) * size.width;
       final y = size.height - ((rssiValues[i] - minRssi) / range) * size.height;
-      
+
       if (i == 0) {
         path.moveTo(x, y);
       } else {
         path.lineTo(x, y);
       }
     }
-    
+
     canvas.drawPath(path, paint);
-    
+
     // Draw grid lines and labels
     final textPainter = TextPainter(
       textDirection: TextDirection.ltr,
       textAlign: TextAlign.center,
     );
-    
+
     // Y-axis labels (RSSI values)
     for (int i = 0; i <= 4; i++) {
       final value = minRssi + (range * i / 4);
       final y = size.height - (i / 4) * size.height;
-      
+
       textPainter.text = TextSpan(
         text: value.toStringAsFixed(0),
         style: const TextStyle(color: Colors.grey, fontSize: 10),
@@ -462,7 +465,7 @@ class RssiChartPainter extends CustomPainter {
       textPainter.paint(canvas, Offset(-30, y - textPainter.height / 2));
     }
   }
-  
+
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => true;
 }

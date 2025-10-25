@@ -9,22 +9,23 @@ class SimplifiedProximityScreen extends StatefulWidget {
   const SimplifiedProximityScreen({super.key});
 
   @override
-  State<SimplifiedProximityScreen> createState() => _SimplifiedProximityScreenState();
+  State<SimplifiedProximityScreen> createState() =>
+      _SimplifiedProximityScreenState();
 }
 
-class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen> 
+class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
     with TickerProviderStateMixin {
   // Target device info
   static const String targetDeviceName = "Ray_Chen的筆記型電腦";
   static const String targetDeviceId = "428A26D3-FC17-А3С5-8B29-20F58A8ACC67";
-  
+
   // Current state
   int _currentRssi = 0;
   bool _isDetecting = false;
   bool _deviceFound = false;
   String _statusMessage = "Starting Mac detection automatically...";
   String _proximityMessage = "";
-  
+
   // Monitoring
   StreamSubscription<List<ScanResult>>? _scanSubscription;
   Timer? _updateTimer;
@@ -32,7 +33,7 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
   bool _showGetClose = false;
   Timer? _getCloseTimer;
   late final BackendService _backend;
-  
+
   // Animation
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
@@ -42,16 +43,15 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
     super.initState();
     // Initialize backend service
     _backend = BackendService(baseUrl: kBackendBaseUrl);
-    
+
     // Initialize animation
     _pulseController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
     _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut)
-    );
-    
+        CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+
     // Automatically start detection when screen opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startDetection();
@@ -82,20 +82,21 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
     try {
       // Start continuous BLE scanning with shorter timeout for frequent updates
       await FlutterBluePlus.startScan(
-        timeout: const Duration(milliseconds: 500), // Short timeout for frequent scans
+        timeout: const Duration(
+            milliseconds: 500), // Short timeout for frequent scans
         androidUsesFineLocation: true,
       );
 
       // Listen for scan results
       _scanSubscription = FlutterBluePlus.scanResults.listen((results) {
         if (!mounted) return;
-        
+
         bool foundInThisScan = false;
-        
+
         for (ScanResult result in results) {
           // Check if this is Ray's Mac by name or device ID
           bool isTargetDevice = false;
-          
+
           // Check by device name
           String deviceName = "";
           if (result.device.platformName.isNotEmpty) {
@@ -103,16 +104,17 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
           } else if (result.advertisementData.advName.isNotEmpty) {
             deviceName = result.advertisementData.advName;
           }
-          
+
           if (deviceName == targetDeviceName) {
             isTargetDevice = true;
           }
-          
+
           // Check by device ID
-          if (result.device.remoteId.toString().toUpperCase() == targetDeviceId.toUpperCase()) {
+          if (result.device.remoteId.toString().toUpperCase() ==
+              targetDeviceId.toUpperCase()) {
             isTargetDevice = true;
           }
-          
+
           if (isTargetDevice) {
             foundInThisScan = true;
             _lastUpdate = DateTime.now();
@@ -126,11 +128,11 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
             break;
           }
         }
-        
+
         // If we didn't find the device in this scan cycle
         if (!foundInThisScan && mounted) {
           // Only update status if we haven't found it recently
-          if (_lastUpdate == null || 
+          if (_lastUpdate == null ||
               DateTime.now().difference(_lastUpdate!).inSeconds > 3) {
             setState(() {
               _deviceFound = false;
@@ -147,11 +149,11 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
           timer.cancel();
           return;
         }
-        
+
         try {
           // Stop current scan
           await FlutterBluePlus.stopScan();
-          
+
           // Start a new scan
           await FlutterBluePlus.startScan(
             timeout: const Duration(milliseconds: 500),
@@ -161,7 +163,6 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
           // Handle scan restart errors silently
         }
       });
-
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -193,14 +194,14 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
       // Cancel get-close timer
       _getCloseTimer?.cancel();
       _getCloseTimer = null;
-      
+
       // Stop scanning
       await FlutterBluePlus.stopScan();
-      
+
       // Cancel subscription
       await _scanSubscription?.cancel();
       _scanSubscription = null;
-      
+
       // Reset last update
       _lastUpdate = null;
     } catch (e) {
@@ -220,9 +221,9 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
     // RSSI closer to 0 = stronger signal = closer distance
     // RSSI more negative = weaker signal = farther distance
     if (_currentRssi > -50) {
-      _proximityMessage = "close";  // Strong signal = close
+      _proximityMessage = "close"; // Strong signal = close
     } else {
-      _proximityMessage = "far";    // Weak signal = far
+      _proximityMessage = "far"; // Weak signal = far
     }
 
     // As long as it's close, trigger the MRT function
@@ -230,7 +231,7 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
       // Stop animation when we're close (detected)
       _pulseController.stop();
       _pulseController.reset();
-      
+
       // Show transient "get close" message (only on transition)
       if (prevProximity == "far") {
         // cancel any existing timer
@@ -247,7 +248,8 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
         // also show a quick snackbar
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('get close'), duration: Duration(seconds: 2)),
+            const SnackBar(
+                content: Text('get close'), duration: Duration(seconds: 2)),
           );
         }
       }
@@ -263,7 +265,7 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
 
   Color _getProximityColor() {
     if (!_deviceFound) return Colors.grey;
-    if (_currentRssi > -50) return Colors.green; // close - green color  
+    if (_currentRssi > -50) return Colors.green; // close - green color
     return Colors.red; // far - red color
   }
 
@@ -313,7 +315,8 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
 
   Color _getBluetoothButtonColor() {
     if (!_isDetecting) return Colors.grey[400]!; // Not detecting
-    if (!_deviceFound || _proximityMessage != "close") return Colors.blue; // Detecting (including when far)
+    if (!_deviceFound || _proximityMessage != "close")
+      return Colors.blue; // Detecting (including when far)
     return Colors.green; // Detected (close)
   }
 
@@ -339,7 +342,8 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
                 child: AnimatedBuilder(
                   animation: _pulseAnimation,
                   builder: (context, child) {
-                    final bool shouldAnimate = _isDetecting && (_proximityMessage != "close" || !_deviceFound);
+                    final bool shouldAnimate = _isDetecting &&
+                        (_proximityMessage != "close" || !_deviceFound);
                     return Transform.scale(
                       scale: shouldAnimate ? _pulseAnimation.value : 1.0,
                       child: Container(
@@ -367,7 +371,7 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
                 ),
               ),
               const SizedBox(height: 20),
-              
+
               // Status Text
               Text(
                 _getBluetoothStatusText(),
@@ -377,9 +381,9 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen>
                   color: Colors.grey[700],
                 ),
               ),
-              
+
               const SizedBox(height: 80),
-              
+
               // Leave Button
               GestureDetector(
                 onTap: () {

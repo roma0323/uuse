@@ -32,15 +32,18 @@ class _BleScanningScreenState extends State<BleScanningScreen> {
   Future<void> _checkBluetoothState() async {
     try {
       // Check if Bluetooth is available and enabled
-      BluetoothAdapterState adapterState = await FlutterBluePlus.adapterState.first;
-      
+      BluetoothAdapterState adapterState =
+          await FlutterBluePlus.adapterState.first;
+
       if (adapterState == BluetoothAdapterState.on) {
         setState(() {
-          _statusMessage = "✅ Bluetooth is ready. Tap 'Start Scanning' to begin.";
+          _statusMessage =
+              "✅ Bluetooth is ready. Tap 'Start Scanning' to begin.";
         });
       } else {
         setState(() {
-          _statusMessage = "❌ Bluetooth is not enabled. Please enable Bluetooth.";
+          _statusMessage =
+              "❌ Bluetooth is not enabled. Please enable Bluetooth.";
         });
       }
     } catch (e) {
@@ -80,7 +83,6 @@ class _BleScanningScreenState extends State<BleScanningScreen> {
           _stopScanning();
         }
       });
-
     } catch (e) {
       setState(() {
         _isScanning = false;
@@ -96,11 +98,11 @@ class _BleScanningScreenState extends State<BleScanningScreen> {
       await FlutterBluePlus.stopScan();
       await _scanSubscription?.cancel();
       _scanSubscription = null;
-      
+
       setState(() {
         _isScanning = false;
-        _statusMessage = _scanResults.isEmpty 
-            ? "Scan completed. No devices found." 
+        _statusMessage = _scanResults.isEmpty
+            ? "Scan completed. No devices found."
             : "Scan completed. Found ${_scanResults.length} device(s).";
       });
     } catch (e) {
@@ -142,29 +144,29 @@ class _BleScanningScreenState extends State<BleScanningScreen> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            
+
             // Status Container
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: _isScanning 
-                    ? Colors.blue.shade50 
-                    : _scanResults.isNotEmpty 
-                        ? Colors.green.shade50 
+                color: _isScanning
+                    ? Colors.blue.shade50
+                    : _scanResults.isNotEmpty
+                        ? Colors.green.shade50
                         : Colors.grey.shade50,
                 border: Border.all(
-                  color: _isScanning 
-                      ? Colors.blue 
-                      : _scanResults.isNotEmpty 
-                          ? Colors.green 
+                  color: _isScanning
+                      ? Colors.blue
+                      : _scanResults.isNotEmpty
+                          ? Colors.green
                           : Colors.grey,
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  if (_isScanning) 
+                  if (_isScanning)
                     const SizedBox(
                       width: 20,
                       height: 20,
@@ -172,8 +174,11 @@ class _BleScanningScreenState extends State<BleScanningScreen> {
                     )
                   else
                     Icon(
-                      _scanResults.isNotEmpty ? Icons.bluetooth_connected : Icons.bluetooth,
-                      color: _scanResults.isNotEmpty ? Colors.green : Colors.grey,
+                      _scanResults.isNotEmpty
+                          ? Icons.bluetooth_connected
+                          : Icons.bluetooth,
+                      color:
+                          _scanResults.isNotEmpty ? Colors.green : Colors.grey,
                     ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -185,9 +190,9 @@ class _BleScanningScreenState extends State<BleScanningScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // Control Buttons
             Row(
               children: [
@@ -216,16 +221,16 @@ class _BleScanningScreenState extends State<BleScanningScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Results Header
             Text(
               'Discovered Devices (${_scanResults.length})',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            
+
             // Device List
             Expanded(
               child: _scanResults.isEmpty
@@ -242,7 +247,7 @@ class _BleScanningScreenState extends State<BleScanningScreen> {
                         final result = _scanResults[index];
                         final deviceName = _getDeviceName(result);
                         final deviceId = _getDeviceId(result);
-                        
+
                         return Card(
                           elevation: 2,
                           margin: const EdgeInsets.only(bottom: 8),
@@ -263,7 +268,8 @@ class _BleScanningScreenState extends State<BleScanningScreen> {
                             ),
                             title: Text(
                               deviceName,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,10 +279,10 @@ class _BleScanningScreenState extends State<BleScanningScreen> {
                                 Text(
                                   'Signal Strength: ${result.rssi} dBm',
                                   style: TextStyle(
-                                    color: result.rssi > -60 
-                                        ? Colors.green 
-                                        : result.rssi > -80 
-                                            ? Colors.orange 
+                                    color: result.rssi > -60
+                                        ? Colors.green
+                                        : result.rssi > -80
+                                            ? Colors.orange
                                             : Colors.red,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -294,30 +300,30 @@ class _BleScanningScreenState extends State<BleScanningScreen> {
                             ),
                             trailing: Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8, 
+                                horizontal: 8,
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: result.rssi > -60 
-                                    ? Colors.green.shade100 
-                                    : result.rssi > -80 
-                                        ? Colors.orange.shade100 
+                                color: result.rssi > -60
+                                    ? Colors.green.shade100
+                                    : result.rssi > -80
+                                        ? Colors.orange.shade100
                                         : Colors.red.shade100,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                result.rssi > -60 
-                                    ? 'Close' 
-                                    : result.rssi > -80 
-                                        ? 'Medium' 
+                                result.rssi > -60
+                                    ? 'Close'
+                                    : result.rssi > -80
+                                        ? 'Medium'
                                         : 'Far',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: result.rssi > -60 
-                                      ? Colors.green.shade800 
-                                      : result.rssi > -80 
-                                          ? Colors.orange.shade800 
+                                  color: result.rssi > -60
+                                      ? Colors.green.shade800
+                                      : result.rssi > -80
+                                          ? Colors.orange.shade800
                                           : Colors.red.shade800,
                                 ),
                               ),
@@ -327,9 +333,9 @@ class _BleScanningScreenState extends State<BleScanningScreen> {
                       },
                     ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Next Phase Button
             if (_scanResults.isNotEmpty && !_isScanning)
               Column(
@@ -349,7 +355,8 @@ class _BleScanningScreenState extends State<BleScanningScreen> {
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                      child: const Text('Continue to Phase 4: Smart Filtering', style: TextStyle(fontSize: 16)),
+                      child: const Text('Continue to Phase 4: Smart Filtering',
+                          style: TextStyle(fontSize: 16)),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -359,12 +366,14 @@ class _BleScanningScreenState extends State<BleScanningScreen> {
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Phase 2 Complete! You can tap any device above to monitor it directly.'),
+                            content: Text(
+                                'Phase 2 Complete! You can tap any device above to monitor it directly.'),
                             backgroundColor: Colors.blue,
                           ),
                         );
                       },
-                      child: const Text('Or tap any device above for direct monitoring'),
+                      child: const Text(
+                          'Or tap any device above for direct monitoring'),
                     ),
                   ),
                 ],
