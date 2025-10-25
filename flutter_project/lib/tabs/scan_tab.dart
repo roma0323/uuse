@@ -94,30 +94,7 @@ class _ScanTabState extends State<ScanTab> with WidgetsBindingObserver {
           ),
         ),
 
-        // Bottom cancel button above preview
-        Positioned(
-          bottom: 72,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: const CircleBorder(),
-                backgroundColor: Colors.white,
-                padding: const EdgeInsets.all(16),
-                elevation: 2,
-              ),
-              onPressed: () {
-                widget.onCancel?.call();
-              },
-              child: const Icon(
-                Icons.close,
-                color: Color(0xFF4A5AB8),
-                size: 28,
-              ),
-            ),
-          ),
-        ),
+        
       ],
     );
   }
