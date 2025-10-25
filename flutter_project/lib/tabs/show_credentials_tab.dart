@@ -38,7 +38,7 @@ class _ShowCredentialsTabState extends State<ShowCredentialsTab> {
               ),
               child: TextField(
               decoration: InputDecoration(
-                hintText: '搜尋55',
+                hintText: '搜尋',
                 hintStyle: TextStyle(
                 color: Colors.grey[600],
                 fontSize: 16,
@@ -112,7 +112,7 @@ class _ShowCredentialsTabState extends State<ShowCredentialsTab> {
             // List Items
             if (_isExpanded) ...[
               _buildListItem(
-              '搭捷運4',
+              '搭捷運',
               0,
               onTap: () {
                 _handleQuickActionTap('00000000_iris_enter_mrt');

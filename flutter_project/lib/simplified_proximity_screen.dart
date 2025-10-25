@@ -12,7 +12,8 @@ class SimplifiedProximityScreen extends StatefulWidget {
   State<SimplifiedProximityScreen> createState() => _SimplifiedProximityScreenState();
 }
 
-class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen> {
+class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen> 
+    with TickerProviderStateMixin {
   // Target device info
   static const String targetDeviceName = "Ray_Chen的筆記型電腦";
   static const String targetDeviceId = "428A26D3-FC17-А3С5-8B29-20F58A8ACC67";
@@ -31,12 +32,26 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen> {
   bool _showGetClose = false;
   Timer? _getCloseTimer;
   late final BackendService _backend;
+  
+  // Animation
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
     // Initialize backend service
     _backend = BackendService(baseUrl: kBackendBaseUrl);
+    
+    // Initialize animation
+    _pulseController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut)
+    );
+    
     // Automatically start detection when screen opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startDetection();
@@ -47,6 +62,7 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen> {
   void dispose() {
     _stopDetection();
     _getCloseTimer?.cancel();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -59,6 +75,9 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen> {
       _statusMessage = "🔍 Searching for your Mac...";
       _proximityMessage = "";
     });
+
+    // Start pulse animation
+    _pulseController.repeat(reverse: true);
 
     try {
       // Start continuous BLE scanning with shorter timeout for frequent updates
@@ -163,6 +182,10 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen> {
       _proximityMessage = "";
     });
 
+    // Stop pulse animation
+    _pulseController.stop();
+    _pulseController.reset();
+
     try {
       // Cancel timer first
       _updateTimer?.cancel();
@@ -194,41 +217,54 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen> {
     final String prevProximity = _proximityMessage;
 
     // Check proximity based on RSSI
-    // Per user requirement: "once RSSI is bigger than -50, show 'far'"
+    // RSSI closer to 0 = stronger signal = closer distance
+    // RSSI more negative = weaker signal = farther distance
     if (_currentRssi > -50) {
-      _proximityMessage = "far";
+      _proximityMessage = "close";  // Strong signal = close
     } else {
-      _proximityMessage = "close";
+      _proximityMessage = "far";    // Weak signal = far
     }
 
-    // If we transitioned from far -> close, show transient "get close" message
-    if (prevProximity == "far" && _proximityMessage == "close") {
-      // cancel any existing timer
-      _getCloseTimer?.cancel();
-      _showGetClose = true;
-      // clear after 2 seconds
-      _getCloseTimer = Timer(const Duration(seconds: 2), () {
+    // As long as it's close, trigger the MRT function
+    if (_proximityMessage == "close") {
+      // Stop animation when we're close (detected)
+      _pulseController.stop();
+      _pulseController.reset();
+      
+      // Show transient "get close" message (only on transition)
+      if (prevProximity == "far") {
+        // cancel any existing timer
+        _getCloseTimer?.cancel();
+        _showGetClose = true;
+        // clear after 2 seconds
+        _getCloseTimer = Timer(const Duration(seconds: 2), () {
+          if (mounted) {
+            setState(() {
+              _showGetClose = false;
+            });
+          }
+        });
+        // also show a quick snackbar
         if (mounted) {
-          setState(() {
-            _showGetClose = false;
-          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('get close'), duration: Duration(seconds: 2)),
+          );
         }
-      });
-      // also show a quick snackbar
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('get close'), duration: Duration(seconds: 2)),
-        );
       }
-      // Trigger MRT quick action
+      // Trigger MRT quick action every time we're close (every second)
       _handleQuickActionTap('00000000_iris_enter_mrt');
+    } else {
+      // Start animation when we're far (still detecting)
+      if (!_pulseController.isAnimating) {
+        _pulseController.repeat(reverse: true);
+      }
     }
   }
 
   Color _getProximityColor() {
     if (!_deviceFound) return Colors.grey;
-    if (_currentRssi > -50) return Colors.red; // far - red color
-    return Colors.green; // close - green color
+    if (_currentRssi > -50) return Colors.green; // close - green color  
+    return Colors.red; // far - red color
   }
 
   Future<void> _handleQuickActionTap(String ref) async {
@@ -275,238 +311,102 @@ class _SimplifiedProximityScreenState extends State<SimplifiedProximityScreen> {
     );
   }
 
+  Color _getBluetoothButtonColor() {
+    if (!_isDetecting) return Colors.grey[400]!; // Not detecting
+    if (!_deviceFound || _proximityMessage != "close") return Colors.blue; // Detecting (including when far)
+    return Colors.green; // Detected (close)
+  }
+
+  String _getBluetoothStatusText() {
+    if (!_isDetecting) return "Not Detecting";
+    if (!_deviceFound || _proximityMessage != "close") return "Detecting...";
+    return "Detected";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mac Proximity Detector'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            // Title
-            const Text(
-              'Simplified Mac Detection',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            // Transient get-close banner
-            if (_showGetClose)
-              Container(
-                margin: const EdgeInsets.only(top: 8, bottom: 8),
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade700,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  'get close',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-              ),
-            const SizedBox(height: 20),
-            
-            // Target Device Info
-            Card(
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    const Icon(Icons.computer, size: 40, color: Colors.blue),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Target Device:',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      targetDeviceName,
-                      style: const TextStyle(fontSize: 16, color: Colors.green),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'ID: ${targetDeviceId.substring(0, 17)}...',
-                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Current RSSI Display
-            if (_deviceFound) ...[
-              Card(
-                elevation: 4,
-                color: _getProximityColor().withOpacity(0.1),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        '$_currentRssi',
-                        style: TextStyle(
-                          fontSize: 42,
-                          fontWeight: FontWeight.bold,
-                          color: _getProximityColor(),
-                        ),
-                      ),
-                      const Text('RSSI (dBm)', style: TextStyle(fontSize: 14)),
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      backgroundColor: Colors.grey[50],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Bluetooth Button
+              GestureDetector(
+                onTap: _isDetecting ? _stopDetection : _startDetection,
+                child: AnimatedBuilder(
+                  animation: _pulseAnimation,
+                  builder: (context, child) {
+                    final bool shouldAnimate = _isDetecting && (_proximityMessage != "close" || !_deviceFound);
+                    return Transform.scale(
+                      scale: shouldAnimate ? _pulseAnimation.value : 1.0,
+                      child: Container(
+                        width: 120,
+                        height: 120,
                         decoration: BoxDecoration(
-                          color: _getProximityColor(),
-                          borderRadius: BorderRadius.circular(16),
+                          color: _getBluetoothButtonColor(),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        child: Text(
-                          _proximityMessage.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                        child: const Icon(
+                          Icons.bluetooth,
+                          size: 60,
+                          color: Colors.white,
                         ),
                       ),
-                    ],
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              // Status Text
+              Text(
+                _getBluetoothStatusText(),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[700],
+                ),
+              ),
+              
+              const SizedBox(height: 80),
+              
+              // Leave Button
+              GestureDetector(
+                onTap: () {
+                  _stopDetection();
+                  Navigator.of(context).pop();
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Leave',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[700],
+                      ),
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
             ],
-            
-            // Status Message
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: _deviceFound ? Colors.green.shade50 : Colors.blue.shade50,
-                border: Border.all(
-                  color: _deviceFound ? Colors.green : Colors.blue,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                _statusMessage,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: _deviceFound ? Colors.green.shade800 : Colors.blue.shade800,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            
-            const SizedBox(height: 30),
-            
-            // Control Button
-            if (_isDetecting)
-              SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: _stopDetection,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.stop, size: 28),
-                      SizedBox(width: 12),
-                      Text(
-                        'Stop Detection',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              
-            if (!_isDetecting)
-              SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: _startDetection,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.refresh, size: 28),
-                      SizedBox(width: 12),
-                      Text(
-                        'Restart Detection',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            
-            const SizedBox(height: 20),
-            
-            // Info Text
-            if (!_isDetecting)
-              Text(
-                'Detection stopped. Tap "Restart Detection" to\nbegin scanning for your Mac again.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              
-            if (_isDetecting && !_deviceFound)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Auto-scanning for your Mac...',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ],
-              ),
-              
-            if (_isDetecting && _deviceFound)
-              Text(
-                'Detection active. RSSI updates every second.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.green.shade600,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            
-            // Bottom padding to prevent overflow
-            const SizedBox(height: 40),
-          ],
+          ),
         ),
       ),
     );

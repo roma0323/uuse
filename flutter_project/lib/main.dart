@@ -146,44 +146,52 @@ class _ShowCredentialsPageState extends State<ShowCredentialsPage> {
           ),
         ),
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton.extended(
-            heroTag: "simplified",
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const SimplifiedProximityScreen(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.computer),
-            label: const Text('Mac Detector'),
-            backgroundColor: Colors.green.shade600,
-            foregroundColor: Colors.white,
-          ),
-          const SizedBox(height: 12),
-          FloatingActionButton.extended(
-            heroTag: "full",
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const BleProximityScreen(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.bluetooth),
-            label: const Text('Full BLE'),
-            backgroundColor: Colors.blue.shade600,
-            foregroundColor: Colors.white,
-          ),
-        ],
-      ),
+      floatingActionButton: _buildFloatingActionButtons(),
     );
   }
 
   // _buildListItem removed; list UI lives inside ShowCredentialsTab now.
+
+  Widget? _buildFloatingActionButtons() {
+    // Show "快速感應" button only in "出示憑證" (index 2) and "掃描" (index 3)
+    if (_currentIndex == 2 || _currentIndex == 3) {
+      return FloatingActionButton.extended(
+        heroTag: "simplified",
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const SimplifiedProximityScreen(),
+            ),
+          );
+        },
+        icon: const Icon(Icons.bluetooth),
+        label: const Text('快速感應'),
+        backgroundColor: Colors.blue.shade600,
+        foregroundColor: Colors.white,
+      );
+    }
+    
+    // Show "blue tester" button only in "個人" (index 4)
+    if (_currentIndex == 4) {
+      return FloatingActionButton.extended(
+        heroTag: "full",
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const BleProximityScreen(),
+            ),
+          );
+        },
+        icon: const Icon(Icons.bluetooth),
+        label: const Text('blue tester'),
+        backgroundColor: Colors.blue.shade600,
+        foregroundColor: Colors.white,
+      );
+    }
+    
+    // No floating action button for other tabs
+    return null;
+  }
 
   Widget _buildBottomNavItem({
     required IconData icon,
