@@ -4,6 +4,7 @@ import 'tabs/add_credentials_tab.dart';
 import 'tabs/scan_tab.dart';
 import 'tabs/profile_tab.dart';
 import 'tabs/show_credentials_tab.dart';
+import 'ble_proximity_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -143,6 +144,19 @@ class _ShowCredentialsPageState extends State<ShowCredentialsPage> {
             ),
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const BleProximityScreen(),
+            ),
+          );
+        },
+        icon: const Icon(Icons.bluetooth),
+        label: const Text('BLE Test'),
+        backgroundColor: Colors.blue.shade600,
+        foregroundColor: Colors.white,
       ),
     );
   }
