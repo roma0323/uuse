@@ -152,7 +152,7 @@ def main_workflow(ref_to_test: str):
 
 
 
-#取得驗證內資料
+#取得驗證內資料 
 def get_verification_result(transaction_id: str, access_token: str):
     """
     查詢使用者掃描 QR Code 後的驗證結果。
