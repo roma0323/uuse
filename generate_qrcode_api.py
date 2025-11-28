@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from markupsafe import escape
 from generate_qrcode import (
     get_qrcode_image,
     save_base64_to_png,
@@ -170,13 +171,14 @@ def api_result():
 
 
 def _html_page(title: str, body_html: str) -> Response:
+    safe_title = escape(title)
     html = f"""
 <!doctype html>
 <html lang=zh-Hant>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{title}</title>
+  <title>{safe_title}</title>
   <style>
     * {{ margin: 0; padding: 0; box-sizing: border-box; }}
     body {{ 
@@ -403,6 +405,7 @@ def view_result():
         )
         return _html_page("POS 收銀系統", body)
     
+    safe_tid = escape(tid)
       
     data = get_verification_result(tid, ACCESS_TOKEN)
     if data is None:
@@ -416,7 +419,7 @@ def view_result():
             "<h2>等待驗證結果</h2>"
             "<p>正在驗證數位身份證件<br>請稍後...</p>"
             "</div>"
-            f"<div class='transaction-id'>交易序號: {tid}</div>"
+            f"<div class='transaction-id'>交易序號: {safe_tid}</div>"
             "</div>"
         )
         return _html_page("POS 收銀系統 - 處理中", body)
@@ -517,7 +520,7 @@ def view_result():
     
     body += f"""
 </div>
-<div class='transaction-id'>交易序號: {tid}</div>
+<div class='transaction-id'>交易序號: {safe_tid}</div>
 </div>
 """
 

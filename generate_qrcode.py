@@ -96,9 +96,12 @@ def save_base64_to_png(base64_data: str, filename_prefix: str = "qrcode_output")
         print(f"Base64 解碼失敗: {e}")
         return None
         
+    # Sanitize the filename_prefix to prevent path traversal
+    safe_prefix = os.path.basename(filename_prefix)
+
     # 組合檔案名稱並寫入
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{filename_prefix}_{timestamp}.png"
+    filename = f"{safe_prefix}_{timestamp}.png"
     
     with open(filename, "wb") as f:
         f.write(image_bytes)
@@ -132,10 +135,10 @@ def main_workflow(ref_to_test: str):
         image_filename = save_base64_to_png(qrcode_base64, ref_to_test)
         
         if image_filename:
-            print(f"\n--- 成功結果 ---")
+            print("\n--- 成功結果 ---")
             print(f"儲存的 QR Code 圖片檔名: {os.path.abspath(image_filename)}")
-            print(f"請用數位憑證皮夾 APP 掃描圖片，並在 5 分鐘內完成上傳。")
-            print(f"\n--- 後續查詢參數 ---")
+            print("請用數位憑證皮夾 APP 掃描圖片，並在 5 分鐘內完成上傳。")
+            print("\n--- 後續查詢參數 ---")
             print(f"transactionId (用於 POST /result): {new_transaction_id}")
             print(f"authUri (DeepLink): {auth_uri}")
         else:
@@ -160,7 +163,7 @@ def get_verification_result(transaction_id: str, access_token: str):
     }
     payload = {"transactionId": transaction_id}
 
-    print(f"\n--- 步驟 2: 查詢驗證結果 ---")
+    print("\n--- 步驟 2: 查詢驗證結果 ---")
     response = requests.post(url, headers=headers, json=payload)
 
     if response.status_code == 200:
@@ -179,15 +182,15 @@ def get_verification_result(transaction_id: str, access_token: str):
 
 if __name__ == "__main__":
    
-    #test_ref = "00000000_iristest"
+    # test_ref = "00000000_iristest"
     test_ref = "00000000_iris_enter_mrt" 
 
     # 產生 QR Code 並取得 transactionId
     transaction_id = main_workflow(test_ref)
 
     # 等使用者掃描完成後再查（按 Enter 繼續）
-    #if transaction_id:
+    # if transaction_id:
     #    input("search")
     #    get_verification_result(transaction_id, ACCESS_TOKEN)
-    #else:
+    # else:
     #    print("沒有可用的 transactionId，停止查詢。")
