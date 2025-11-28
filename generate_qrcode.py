@@ -6,6 +6,7 @@ import json
 import os
 from datetime import datetime
 from dotenv import load_dotenv
+from typing import Optional
 
 # Load environment variables
 load_dotenv()
@@ -23,7 +24,7 @@ def generate_new_transaction_id():
     """自動產生 UUID v4 格式的唯一交易序號"""
     return str(uuid.uuid4())
 
-def get_qrcode_image(ref_value: str, access_token: str, transaction_id: str) -> dict:
+def get_qrcode_image(ref_value: str, access_token: str, transaction_id: str) -> Optional[dict]:
     """
     呼叫數位憑證皮夾驗證端 API 產生 QR Code
     
@@ -48,7 +49,7 @@ def get_qrcode_image(ref_value: str, access_token: str, transaction_id: str) -> 
         "Access-Token": access_token
     }
     
-    print(f"--- 步驟 1: 發送 QR Code 產生請求 ---")
+    print("--- 步驟 1: 發送 QR Code 產生請求 ---")
     print(f"使用的 ref: {ref_value}")
     print(f"使用的 transactionId: {transaction_id}")
     
@@ -71,7 +72,7 @@ def get_qrcode_image(ref_value: str, access_token: str, transaction_id: str) -> 
         print(f"請求失敗: {err}")
         return None
 
-def save_base64_to_png(base64_data: str, filename_prefix: str = "qrcode_output") -> str:
+def save_base64_to_png(base64_data: str, filename_prefix: str = "qrcode_output") -> Optional[str]:
     """
     將 Data URI 格式的 Base64 圖片資料儲存為 PNG 檔案。
     
@@ -182,15 +183,7 @@ def get_verification_result(transaction_id: str, access_token: str):
 
 if __name__ == "__main__":
    
-    # test_ref = "00000000_iristest"
     test_ref = "00000000_iris_enter_mrt" 
 
     # 產生 QR Code 並取得 transactionId
     transaction_id = main_workflow(test_ref)
-
-    # 等使用者掃描完成後再查（按 Enter 繼續）
-    # if transaction_id:
-    #    input("search")
-    #    get_verification_result(transaction_id, ACCESS_TOKEN)
-    # else:
-    #    print("沒有可用的 transactionId，停止查詢。")
